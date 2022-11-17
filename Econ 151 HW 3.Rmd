@@ -1,0 +1,235 @@
+---
+title: "PSET 3"
+author: Gary Schmidt    
+date: 11 November 2022
+header-includes:
+   - \usepackage{bbm, amsmath,amsfonts,amsthm,amssymb,mathrsfs,amsxtra,amscd,latexsym, xcolor, graphicx}
+output: html_document
+---
+
+You can define LaTex Macros at the top of the file, like so:
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\Corr}{\mathrm{Corr}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\fix}[1]{\textcolor{red}{\textbf{\large (#1)\normalsize}}}
+
+
+```{r setup, include=FALSE}
+#the include=FALSE in this chunk means the chunk will not appear in the knitted PDF. 
+#for most of your code, you probably do want it to appear in your final report, and so don't type include=FALSE
+#in order to run this code, you will need to install these packages. You can do so by going to the install button, or by going to the console and typing, for example, install.packages("knitr")
+library(knitr)
+library(latex2exp)
+library(Lahman)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+PROBLEM 1:
+
+1.1 If our two players were only going to meet each other once, they would both act in the manner that would maximize their one time payoff, which for both parties would mean defecting. We would not need to concern ourselves with a discount factor in future periods, so we are only looking to optimize our first period. This would mean we would arrive at our Nash Equilibrium at Defect, Defect. 
+
+1.2 If both players follow the Grim trigger strategy, that means they would cooperate every single time. Their payoff being described by the equation P = p1 + BP2 + B^2P3... would follow into an infinite Taylor series. Under Grim trigger, both parties would continue to cooperate in perpetuity and the series would converge to the value of 2 / (1 - B) for both players. 
+
+1.3 As player B has an advantage over player A when defecting, there is a range of values B such that player B will find a greater advantage to defect than to participate in the Grim trigger strategy that his partner is going to use. This is under the assumption that player A perfectly knows the turn after player B defects to also begin defecting, as is assumed under Grim trigger. In order to find this value, we set our convergence from last question equal to the value of a one-time defection-cooperation for Player B, 5. This solves such that at B = 3/5, the two options are indifferent, therefore at values less than 3/5, Player B would be better off by defecting and all values greater they would defect.
+
+However, this strategy does not take into consideration what would occur after this defection turn in the scope of perpetuity. After Grim trigger is broken, both players would continue at defection-defection. So therefore, whether cooperating or defecting, they would reach our long-term convergence of 2/(1-B). All held in consideration, player B would therefore be advantaged under any conditions to defect at some point as it will not change their long-term outcome and would only offer the potential to add 5 to this total.   
+
+1.4 Given the new announcement, Player A playing the Grim trigger strategy is still entirely credible and in fact, it would be all the more illogical for them to be honest and cooperate as they no longer can gain any advantage from a cooperation-defection situation over a cooperation-cooperation strategy and particularly in the long-run will be drastically harmed by a defection-defection strategy. Therefore, announcing this and following this is the realistic best case scenario for them. 
+
+
+1.5 Given my prior explanation, player B will have a choice of whether or not to participate in playing Grim trigger as well with player A. Using the same strategy as before, for values of B that are less than 1/3 it is advantageous for them to defect. However, when considering the long-term equilibrium that is then reached for player B (0 in perpetuity), it no longer is inconsequential to defect or not. After taking this total of 3, they will no longer gain any additional value. Therefore, this time we can fully base our rational off of the value of the one-time defection value and the long-term convergence of mutual cooperation. For B < 1/3, player B will defectand for B > 1/3, they will cooperate under Grim trigger.
+
+
+1.6 A real-life application of this scenario could be in nuclear arms deescalation. Let us say that an institution, the United Nations, declares that there will be sanctions placed upon our two players, the United States and Russia, if they choose to not deescalate their supply of nuclear weapons. The grand conclusion is that both parties would be incentivized in the majority of situations (similar to the majority of Betas showing a mutual benefit to comply under Grim trigger) however, in certain situations, the sanctions would not overwhelm the benefit of non-compliance and therefore we could see a party choose to accept the sanctions and defect regardless as that optimizes their benefit.
+
+
+
+PROBLEM 2: 
+
+installing ggmap:
+
+```{r}
+#install.packages("jsonlite")
+#install.packages("RCurl")
+```
+
+
+
+2.1) Importing the downloaded CSV files of schools voting data. 
+```{r}
+library(tidyverse)
+schools = read_csv("schools_votingdata.csv")
+
+head(schools)
+
+colnames(schools)
+
+#schools
+
+```
+
+2.2 Geolocating all of the locations provided in the file. In order to do this, I registered a API with BingMaps. Out of interest of time and not wanting to burn through my maximum amount of usage under the API, the code below has been commented out, though I wrote the results to a new CSV file and continued editing the same data table. 
+```{r}
+
+#setting up global variables and modifiying datatable for adding coordinates
+BingMapsKey = "AjEiQoR43OvKU4qy2jfS2yCVpaDBtuW7WGM2FqHiJOvbk6CDw92EvFRiW0M4nhAI"
+
+country_region = "peru"
+
+schools['latitude'] = ""
+
+schools['longitude'] = ""
+
+#creating a control datatable to check periodically that the for loop was working correctly.
+schools_orig = schools
+
+#start loop to add rows 
+
+## COMMENTED OUT FOR KNITTING
+# for (x in 1:997) {
+#   
+#   #updating local address
+#   address = schools$str2geocode[x]
+#   
+#   #updating local URL for API access
+#   url = URLencode(paste0("http://dev.virtualearth.net/REST/v1/Locations?countryRegion=", country_region,"&addressLine=",address,"&maxResults=1&key=",BingMapsKey))
+#   
+#   #API accessing
+#   json = fromJSON(getURL(url))
+#   
+#   schools$latitude[x] = json$resourceSets$resources[[1]]$point$coordinates[[1]][1]
+#   
+#   schools$longitude[x] = json$resourceSets$resources[[1]]$point$coordinates[[1]][2]
+#   
+# }
+
+#schools
+```
+
+Reporting first few schools and write new csv file for later access if needed.
+```{r}
+#reading in from new csv file after pulling from API -- edited for knitting
+
+schools = read_csv("schools_withlocations.csv")
+
+#original code and exporting 
+head(schools)
+
+#write_csv(schools, "schools_withlocations.csv")
+
+```
+
+2.3 Uploading packages for SF and Mapview
+```{r}
+#install.packages("sf")
+#install.packages("mapview")
+```
+
+
+Converting our datatable to a SF object and projecting our map
+```{r}
+library(sf)
+library(mapview)
+schools_sf = st_as_sf(schools, coords = c("longitude", "latitude"), crs = st_crs(4326))
+
+schools_map = mapview(schools_sf)
+
+schools_map
+```
+
+
+2.4 Reading in the shapefile and reporting the CRS values for shapefile and sf object.
+```{r}
+
+shape = st_read("province1876.shp")
+
+#shape
+
+shape_crs = st_crs(shape)
+
+schools_crs = st_crs(schools_sf)
+
+shape_crs
+
+schools_crs
+
+```
+
+2.5 Removing schools outside of the boundary and reporting the new map within the boundaries.
+```{r}
+
+schools_1876 = schools_sf[shape, op = st_intersects]
+
+schools_1876_map = mapview(schools_1876)
+
+schools_1876_map
+```
+
+2.6 Adding provinces to the data and demonstrating the change in variables before and after. 
+```{r}
+
+#colnames before
+colnames(schools_sf)
+
+schools_1876_segmented = st_intersection(schools_1876, shape)
+
+#colnames after
+colnames(schools_1876_segmented)
+
+```
+
+2.7
+
+Aggregating all of our data and preparing for a report. 
+```{r}
+#drop geometric terms, group all of our data by the province it occurs in, 
+#and summarize all necessary datapoints using a summation for all numerics except land-theft, #which takes the mean
+
+schools_final = 
+  st_drop_geometry(schools_1876_segmented) %>% 
+  group_by(prov_id) %>%
+  summarise(votes_communism = sum(votes_communism), votes_total = sum(votes_total) ,
+                                votes_valid = sum(votes_valid), pop_can_vote = 
+                                sum(pop_can_vote), land_theft = mean(land_theft))
+  
+#schools_final
+
+```
+
+Calculating vote shares earned by the communist party and total voter turnout, aggregated as before under each province
+```{r}
+
+schools_final['communism_share'] = ''
+
+schools_final['voter_turnout'] = ''
+
+for (x in 1:27){
+  schools_final$communism_share[x] = schools_final$votes_communism[x] /
+                                      schools_final$votes_total[x]
+  
+  schools_final$voter_turnout[x] = schools_final$votes_total[x] /
+                                    schools_final$pop_can_vote[x]
+  
+}
+#schools_final
+```
+
+Performing regression analysis on share of vote earned by the communist party on land theft and plotting our data in a scatter plot with regression line added
+```{r}
+
+#vote_regress = lm(schools_final$communism_share ~ schools_final$land_theft)
+
+vote_regress = lm(communism_share ~ land_theft, data = schools_final)
+
+summary(vote_regress)
+
+plot( x = schools_final$communism_share, y = schools_final$land_theft )
+  abline(vote_regress, col = 'red', lwd = 2)
+
+```
+
+
