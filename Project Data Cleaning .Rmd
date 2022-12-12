@@ -1,0 +1,917 @@
+---
+title: "Project Data Cleaning"
+output: pdf
+date: "1 December"
+---
+
+Importing libraries: 
+```{r}
+library("ngram")
+library("tm")
+library("tidyverse")
+library("dplyr")
+library("ggplot2")
+
+```
+
+
+Importing Datasets: 
+```{r}
+
+getwd() 
+
+charleston_pre = read.csv( file = "'Charleston Church Shooting.csv")
+
+christchurch_pre = read.csv( file = "'Christchurch.csv")
+
+pittsburgh_pre = read.csv( file = "'Pittsburgh_2.csv")
+
+brown_pre = read.csv( file = "brown10000.csv")
+
+laguna_pre = read.csv( file = "laguna10000.csv")
+
+sandy_pre = read.csv( file = "sandy10000.csv")
+
+santafe_pre = read.csv(file = "santafe10000.csv")
+
+trayvon_pre = read.csv(file = "trayvon10000.csv")
+
+uvalde_pre = read.csv( file = "uvalde10000.csv")
+
+#lexicons
+
+emotion_lexicon = read.csv(file = "Emotions_lexicon.csv")
+
+political_lexicon = read.csv(file = "politicallexiconfinal.csv")
+
+```
+
+
+
+ALL-IN-ONE CLEANING FUNCTION: 
+```{r}
+
+#before running the function, you need to read in the csv file
+
+tweet_clean = function(df) { 
+  
+  library("ngram")
+  library("tm")
+  
+  
+  df_text = paste( df$Tweet, collapse= "")
+
+  
+  
+  df_text = concatenate(df_text) %>%
+  VectorSource() %>%
+  Corpus()
+  
+  
+  df_text = tm_map(df_text, content_transformer(tolower)) 
+  df_text = tm_map(df_text, content_transformer(removeNumbers)) 
+  df_text = tm_map(df_text, removeWords, stopwords("english")) 
+  df_text = tm_map(df_text, content_transformer(removePunctuation)) 
+  df_text = tm_map(df_text, content_transformer(stripWhitespace))
+
+  df_string = concatenate (lapply(df_text,"[",1))
+  df_unigram = get.phrasetable(ngram(df_string, n=1)) 
+  
+  return(df_unigram)
+  
+}
+
+```
+
+
+Cleaning dataframes
+```{r}
+
+brown_post = tweet_clean(brown_pre)
+
+charleston_post = tweet_clean(charleston_pre)
+
+christchurch_post = tweet_clean(christchurch_pre)
+
+laguna_post = tweet_clean(laguna_pre)
+
+pittsburgh_post = tweet_clean(pittsburgh_pre)
+
+sandy_post = tweet_clean(sandy_pre)
+
+santafe_post = tweet_clean(santafe_pre)
+
+travyon_post = tweet_clean(trayvon_pre)
+
+uvalde_post = tweet_clean(uvalde_pre)
+
+
+```
+
+View transformed dataframes
+```{r}
+
+brown_post
+charleston_post
+christchurch_post
+laguna_post
+pittsburgh_post
+sandy_post
+santafe_post
+trayvon_post = travyon_post
+trayvon_post
+uvalde_post
+
+```
+
+Exporting to CSV files: 
+
+```{r}
+
+#/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data...
+
+#write.csv(brown_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/brown_final.csv" )
+
+#write.csv(brown_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/brown_final.csv" )
+
+#write.csv(charleston_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/charleston_final.csv" )
+
+#write.csv(christchurch_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/christchurch_final.csv" )
+
+#write.csv(laguna_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/laguna_final.csv" )
+
+#write.csv(pittsburgh_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/pittsburgh_final.csv" )
+
+#write.csv(sandy_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/sandy_final.csv" )
+
+#write.csv(santafe_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/santafe_final.csv" )
+
+#write.csv(trayvon_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/trayvon_final.csv" )
+
+#write.csv(uvalde_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/uvalde_final.csv" )
+
+```
+
+helper function
+```{r}
+brown_max = brown_post %>% arrange(-freq)
+
+brown_max = brown_max[1:25,]
+
+brown_max
+```
+
+
+Creating graphics of each phrasetable -- iteration for one df: 
+```{r}
+
+brown_plot = brown_max %>%
+  ggplot(aes(reorder(ngrams, freq), freq)) +
+         geom_col() +
+         labs( x = "Keyword", y = "Total Refrences", title = "Frequencies of Keywords")
+
+brown_plot + coord_flip()
+
+
+```
+
+Creating function to apply to all df: 
+```{r}
+
+create_graphic = function(df) { 
+  #reorder dataframe for speed
+  df_max = df %>% arrange(-freq)
+  
+  df_max = df_max[1:25,]
+  
+  #Creating graphic
+  df_plot = df_max %>%
+    ggplot(aes(reorder(ngrams, freq), freq)) +
+         geom_col() +
+         labs( x = "Keyword", y = "Total Refrences", title = "Frequencies of Keywords")
+  
+  return(df_plot + coord_flip())
+  
+  }
+
+
+```
+
+Testing on one:
+```{r}
+
+brown_test = create_graphic(brown_post)
+
+brown_test
+
+```
+
+
+Creating graphics for all 
+```{r}
+
+brown_barplot = create_graphic(brown_post)
+
+charleston_barplot = create_graphic(charleston_post)
+
+christchurch_barplot = create_graphic(christchurch_post)
+
+laguna_barplot = create_graphic(laguna_post)
+
+pittsburgh_barplot = create_graphic(pittsburgh_post)
+
+sandy_barplot = create_graphic(sandy_post)
+
+santafe_barplot = create_graphic(santafe_post)
+
+trayvon_barplot = create_graphic(trayvon_post)
+
+uvalde_barplot = create_graphic(uvalde_post)
+
+
+```
+
+View all: 
+```{r}
+
+brown_barplot
+charleston_barplot
+christchurch_barplot
+laguna_barplot
+pittsburgh_barplot
+sandy_barplot
+santafe_barplot
+trayvon_barplot
+uvalde_barplot
+
+
+```
+
+Exporting graphics:
+```{r}
+
+#/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data
+
+#ggsave(filename = "brown_barplot", plot = brown_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+#ggsave(filename = "charleston_barplot", plot = charleston_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+#ggsave(filename = "christchurch_barplot", plot = christchurch_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+#ggsave(filename = "laguna_barplot", plot = laguna_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+#ggsave(filename = "pittsburgh_barplot", plot = pittsburgh_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+#ggsave(filename = "sandy_barplot", plot = sandy_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+#ggsave(filename = "santafe_barplot", plot = santafe_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+#ggsave(filename = "trayvon_barplot", plot = trayvon_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+#ggsave(filename = "uvalde_barplot", plot = uvalde_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+```
+
+Consolidating data frames into categories: 
+```{r}
+racial = rbind(trayvon_post, brown_post, charleston_post)
+
+religious = rbind(pittsburgh_post, laguna_post, christchurch_post)
+
+school = rbind(uvalde_post, sandy_post, santafe_post)
+
+racial
+religious 
+school
+
+```
+
+```{r}
+create_graphic_category = function(df) { 
+  
+  #reorder dataframe for speed
+  df_max = df %>%
+  group_by(ngrams) %>%
+  summarise(across(c(freq), sum)) %>%
+  arrange(-freq)
+  
+  df_max = df_max[1:30,]
+  
+  #Creating graphic
+  df_plot = df_max %>%
+    ggplot(aes(reorder(ngrams, freq), freq)) +
+         geom_col(width = .7) +
+         labs( x = "Keyword", y = "Total Refrences", title = "Frequencies of Keywords")
+  
+  return(df_plot + coord_flip())
+  
+  }
+```
+
+Working out the logic for combining all the groups:
+```{r}
+
+school_max = school %>% arrange(-freq)
+
+school_max
+
+
+school_combined = school %>%
+  group_by(ngrams) %>%
+  summarise(across(c(freq), sum)) %>%
+  arrange(-freq)
+
+school_combined
+
+```
+
+
+Utilizing same process on categories: 
+```{r}
+racial_barplot = create_graphic_category(racial)
+
+religious_barplot = create_graphic_category(religious)
+
+school_barplot = create_graphic_category(school)
+
+racial_barplot
+religious_barplot
+school_barplot
+```
+Saving new graphics: 
+```{r}
+
+ggsave(filename = "racial_barplot", plot = racial_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+ggsave(filename = "school_barplot", plot = school_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+ggsave(filename = "religious_barplot", plot = religious_barplot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Barplots/")
+
+```
+
+All-in-one political quotient function
+```{r}
+tweet_political_count = function(df) { 
+  
+  num_rows = nrow(df)
+  
+  df['pol_count'] = 0
+  
+  for (i in 1:num_rows){
+    if (trimws(df$ngrams[i]) %in% political_lexicon$political_final == TRUE){
+      df$pol_count[i] = 1
+    }
+  }
+  
+  return(df)
+}
+```
+
+testing one df
+```{r}
+
+trayvon_polcount = tweet_political_count(trayvon_post)
+
+trayvon_polcount
+
+#attempting to add to plots 
+
+create_graphic_pol = function(df) { 
+  #reorder dataframe for speed
+  df_max = df %>% arrange(-freq)
+  
+  df_max = df_max[1:25,]
+  
+  #Creating graphic
+  df_plot = df_max %>%
+    ggplot(aes(reorder(ngrams, freq), freq, fill = pol_count == 1)) +
+         geom_col() +
+         scale_fill_manual(values = c("#FC2D00","#008EFC"),
+                    labels=c('TRUE'='In Political Lexicon','FALSE'='Not in Lexicon'))+
+         labs( x = "Keyword", y = "Total Refrences", title = "Frequencies of Keywords", fill = "Lexicon")
+  
+  return(df_plot + coord_flip())
+  
+  }
+
+trayvon_pol_plot = create_graphic_pol(trayvon_polcount)
+
+trayvon_pol_plot
+
+```
+applying to all datasets: 
+```{r}
+
+brown_polcount = tweet_political_count(brown_post)
+brown_pol_plot = create_graphic_pol(brown_polcount)
+
+charleston_polcount = tweet_political_count(charleston_post)
+charleston_pol_plot = create_graphic_pol(charleston_polcount)
+
+christchurch_polcount = tweet_political_count(christchurch_post)
+christchurch_pol_plot = create_graphic_pol(christchurch_polcount)
+
+laguna_polcount = tweet_political_count(laguna_post)
+laguna_pol_plot = create_graphic_pol(laguna_polcount)
+
+pittsburgh_polcount = tweet_political_count(pittsburgh_post)
+pittsburgh_pol_plot = create_graphic_pol(pittsburgh_polcount)
+
+sandy_polcount = tweet_political_count(sandy_post)
+sandy_pol_plot = create_graphic_pol(sandy_polcount)
+
+santafe_polcount = tweet_political_count(santafe_post)
+santafe_pol_plot = create_graphic_pol(santafe_polcount)
+
+uvalde_polcount = tweet_political_count(uvalde_post)
+uvalde_pol_plot = create_graphic_pol(uvalde_polcount)
+
+#Groupwide 
+
+racial_polcount = tweet_political_count(racial)
+racial_pol_plot = create_graphic_pol(racial_polcount)
+
+school_polcount = tweet_political_count(school)
+school_pol_plot = create_graphic_pol(school_polcount)
+
+religious_polcount = tweet_political_count(religious)
+religious_pol_plot = create_graphic_pol(religious_polcount)
+
+
+```
+
+```{r}
+trayvon_polcount
+trayvon_pol_plot
+
+brown_polcount
+brown_pol_plot
+
+charleston_polcount
+charleston_pol_plot
+
+christchurch_polcount
+christchurch_pol_plot
+
+laguna_polcount
+laguna_pol_plot
+
+pittsburgh_polcount
+pittsburgh_pol_plot
+
+sandy_polcount
+sandy_pol_plot
+
+santafe_polcount
+santafe_pol_plot
+
+uvalde_polcount
+uvalde_pol_plot
+
+school_polcount
+school_pol_plot
+
+racial_polcount
+racial_pol_plot
+
+religious_polcount
+religious_pol_plot 
+
+```
+
+Exporting plots that just show the political counts for the top 25 terms
+```{r}
+#ggsave(filename = "brown_polplot", plot = brown_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "charleston_polplot", plot = charleston_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "christchurch_polplot", plot = christchurch_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "laguna_polplot", plot = laguna_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "pittsburgh_polplot", plot = pittsburgh_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "sandy_polplot", plot = sandy_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "santafe_polplot", plot = santafe_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "trayvon_polplot", plot = trayvon_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "uvalde_polplot", plot = uvalde_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "school_polplot", plot = school_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "religious_polplot", plot = religious_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+#ggsave(filename = "racial_polplot", plot = racial_pol_plot, device = "png", path = "/Users/garyschmidt/Desktop/Econ151PrelimData/Pol Plots/")
+
+```
+
+writing different functions to edit dataframes and show where each category is triggered
+```{r}
+
+tweet_emotion_count = function(df) { 
+  
+  num_rows = nrow(df)
+  
+  df['neg_count'] = 0
+  df['fear_count'] = 0
+  df['disgust_count'] = 0
+  df['anger_count'] = 0
+  df['pos_count'] = 0
+  
+  for (i in 1:num_rows){
+    if (trimws(df$ngrams[i]) %in% emotion_lexicon$Negative == TRUE){
+      df$neg_count[i] = 1
+    }
+  }
+  
+  for (i in 1:num_rows){
+    if (trimws(df$ngrams[i]) %in% emotion_lexicon$Fear == TRUE){
+      df$fear_count[i] = 1
+    }
+  }
+  
+  for (i in 1:num_rows){
+    if (trimws(df$ngrams[i]) %in% emotion_lexicon$Disgust == TRUE){
+      df$disgust_count[i] = 1
+    }
+  }
+  
+  for (i in 1:num_rows){
+    if (trimws(df$ngrams[i]) %in% emotion_lexicon$Anger == TRUE){
+      df$anger_count[i] = 1
+    }
+  }
+  
+  for (i in 1:num_rows){
+    if (trimws(df$ngrams[i]) %in% emotion_lexicon$Positive == TRUE){
+      df$pos_count[i] = 1
+    }
+  }
+  return(df)
+}
+
+```
+
+Testing on one function
+```{r}
+
+racial_final = tweet_emotion_count(racial_polcount)
+
+racial_final
+
+```
+
+Applying to all dataframes: 
+```{r}
+brown_final = tweet_emotion_count(brown_polcount)
+charleston_final = tweet_emotion_count(charleston_polcount)
+christchurch_final = tweet_emotion_count(christchurch_polcount)
+laguna_final = tweet_emotion_count(laguna_polcount)
+pittsburgh_final = tweet_emotion_count(pittsburgh_polcount)
+sandy_final = tweet_emotion_count(sandy_polcount)
+santafe_final = tweet_emotion_count(santafe_polcount)
+travyon_final = tweet_emotion_count(trayvon_polcount)
+uvalde_final = tweet_emotion_count(uvalde_polcount)
+#groups
+
+religious_final = tweet_emotion_count(religious_polcount)
+school_final = tweet_emotion_count(school_polcount)
+
+
+
+```
+
+
+```{r}
+uvalde_fina
+```
+
+
+Exporting final dataframes: 
+```{r}
+
+#write.csv(brown_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/brown_final.csv")
+
+#write.csv(charleston_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/charleston_final.csv")
+
+#write.csv(christchurch_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/christchurch_final.csv")
+
+#write.csv(laguna_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/laguna_final.csv")
+
+#write.csv(pittsburgh_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/pittsburgh_final.csv")
+
+#write.csv(sandy_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/sandy_final.csv")
+
+#write.csv(santafe_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/santafe_final.csv")
+
+#write.csv(travyon_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/trayvon_final.csv")
+
+#write.csv(uvalde_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/uvalde_final.csv")
+
+#write.csv(school_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/school_final.csv")
+
+#write.csv(religious_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/religious_final.csv")
+
+#write.csv(racial_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/racial_final.csv")
+
+```
+
+making another version for analysis: 
+
+```{r}
+
+remove_bad_data = function(df){
+  
+  df = df %>% 
+    subset(freq > 1 & (df$pol_count == 1 | df$neg_count == 1 | df$disgust_count == 1 | 
+             df$anger_count == 1  | df$fear_count == 1 | df$pos_count == 1))
+  
+}
+ 
+trayvon_test = remove_bad_data(travyon_final)
+
+trayvon_test
+
+
+racial_final
+```
+
+
+```{r}
+
+trayvon_words = remove_bad_data(travyon_final)
+brown_words = remove_bad_data(brown_final)
+charleston_words = remove_bad_data(charleston_final)
+christchurch_words = remove_bad_data(christchurch_final)
+laguna_words = remove_bad_data(laguna_final)
+pittsburgh_words = remove_bad_data(pittsburgh_final)
+sandy_words = remove_bad_data(sandy_final)
+santafe_words = remove_bad_data(santafe_final) 
+uvalde_words = remove_bad_data(uvalde_final)
+school_words = remove_bad_data(school_final)
+religious_words = remove_bad_data(religious_final)
+racial_words = remove_bad_data(racial_final)
+
+
+# #fixing group double counting issues 
+# 
+# 
+# 
+# religious_words = religious_words %>%
+#   group_by(ngrams, pol_count, neg_count, fear_count, disgust_count, anger_count, pos_count) %>%
+#   summarise(across(c(freq), sum)) %>%
+#   arrange(-freq)
+# religious_words
+# 
+# school_words = school_words %>%
+#   group_by(ngrams) %>%
+#   summarise(across(c(freq), sum)) %>%
+#   arrange(-freq)
+# 
+# 
+# racial_words = racial_words %>%
+#   group_by(ngrams) %>%
+#   summarise(across(c(freq), sum)) %>%
+#   arrange(-freq)
+
+```
+
+exporting data: 
+```{r}
+#write.csv(brown_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/brown_final_compressed.csv")
+
+#write.csv(trayvon_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/trayvon_final_compressed.csv")
+
+#write.csv(charleston_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/charleston_final_compressed.csv")
+
+#write.csv(christchurch_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/christchurch_final_compressed.csv")
+
+#write.csv(laguna_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/laguna_final_compressed.csv")
+
+#write.csv(pittsburgh_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/pittsburgh_final_compressed.csv")
+
+#write.csv(sandy_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/sandy_final_compressed.csv")
+
+#write.csv(santafe_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/santafe_final_compressed.csv")
+
+#write.csv(uvalde_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/uvalde_final_compressed.csv")
+
+#write.csv(school_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/school_final_compressed.csv")
+
+#write.csv(religious_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/religious_final_compressed.csv")
+
+#write.csv(racial_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/racial_final_compressed.csv")
+
+
+```
+
+creating mega dataframe: 
+
+```{r}
+
+all_tweets = rbind(school_final, religious_final, racial_final)
+
+all_tweets #should go through and reorganize all of this data at some point 
+
+all_tweets_compressed = rbind(school_words, religious_words, racial_words)
+
+all_tweets_compressed
+
+#exporting both 
+
+write.csv(all_tweets, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/all_tweets_final.csv")
+
+write.csv(all_tweets_compressed, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/all_tweets_compressed.csv")
+
+
+```
+
+redoing everything for control data
+```{r}
+charleston_control_pre = read.csv( file = "Charleston Control.csv")
+
+christchurch_control_pre = read.csv( file = "'Christchurch Control.csv")
+
+pittsburgh_control_pre = read.csv( file = "'Pittsburgh control.csv")
+
+brown_control_pre = read.csv( file = "browncontrol10000.csv")
+
+laguna_control_pre = read.csv( file = "lagunacontrol10000.csv")
+
+sandy_control_pre = read.csv( file = "'Sandy Hook Control.csv")
+
+santafe_control_pre = read.csv(file = "'Santa Fe HS Control.csv")
+
+trayvon_control_pre = read.csv(file = "treyvoncontrol10000.csv")
+
+uvalde_control_pre = read.csv( file = "uvaldecontrol10000.csv")
+
+racial_control_pre = rbind(trayvon_control_pre, brown_control_pre, charleston_control_pre)
+
+religious_control_pre = rbind(pittsburgh_control_pre, laguna_control_pre, christchurch_control_pre)
+
+school_control_pre = rbind(uvalde_control_pre, sandy_control_pre, santafe_control_pre)
+
+# school_combined = school %>%
+#   group_by(ngrams) %>%
+#   summarise(across(c(freq), sum)) %>%
+#   arrange(-freq)
+# 
+# school_combined
+
+```
+
+
+cleaning
+```{r}
+
+charleston_control_post = tweet_clean(charleston_control_pre)
+christchurch_control_post = tweet_clean(christchurch_control_pre)
+pittsburgh_control_post = tweet_clean(pittsburgh_control_pre)
+brown_control_post = tweet_clean(brown_control_pre)
+laguna_control_post = tweet_clean(laguna_control_pre)
+sandy_control_post = tweet_clean(sandy_control_pre)
+santafe_control_post = tweet_clean(santafe_control_pre)
+trayvon_control_post = tweet_clean(trayvon_control_pre)
+uvalde_control_post = tweet_clean(uvalde_control_pre)
+
+racial_control_post = tweet_clean(racial_control_pre)
+
+
+```
+
+```{r}
+
+religious_control_post = tweet_clean(religious_control_pre)
+
+school_control_post = tweet_clean(school_control_pre)
+```
+
+
+exporting ngrams
+```{r}
+
+write.csv(charleston_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/charleston_control.csv")
+
+write.csv(christchurch_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/christchurch_control.csv")
+          
+write.csv(pittsburgh_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/pittsburgh_control.csv")
+          
+write.csv(brown_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/brown_control.csv")
+          
+write.csv(laguna_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/laguna_control.csv")
+          
+write.csv(sandy_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/sandy_control.csv")
+          
+write.csv(santafe_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/santafe_control.csv")
+          
+write.csv(trayvon_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/trayvon_control.csv")
+          
+write.csv(uvalde_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/uvalde_control.csv")
+          
+write.csv(school_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/school_control.csv")
+          
+write.csv(religious_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/religious_control.csv")
+
+write.csv(racial_control_post, "/Users/garyschmidt/Desktop/Econ151PrelimData/Processed Data/racial_control.csv")
+```
+
+
+creating dataframes with dictionary indicators 
+```{r}
+
+charleston_control_final = charleston_control_post %>% tweet_political_count() %>% tweet_emotion_count
+
+christchurch_control_final = christchurch_control_post %>% tweet_political_count() %>% tweet_emotion_count
+pittsburgh_control_final = pittsburgh_control_post %>% tweet_political_count() %>% tweet_emotion_count
+brown_control_final = brown_control_post %>% tweet_political_count() %>% tweet_emotion_count
+laguna_control_final = laguna_control_post %>% tweet_political_count() %>% tweet_emotion_count
+sandy_control_final = sandy_control_post %>% tweet_political_count() %>% tweet_emotion_count
+santafe_control_final = santafe_control_post %>% tweet_political_count() %>% tweet_emotion_count
+trayvon_control_final = trayvon_control_post %>% tweet_political_count() %>% tweet_emotion_count
+uvalde_control_final = uvalde_control_post %>% tweet_political_count() %>% tweet_emotion_count
+
+racial_control_final = racial_control_post %>% tweet_political_count() %>% tweet_emotion_count
+religious_control_final = religious_control_post %>% tweet_political_count() %>% tweet_emotion_count
+school_control_final = school_control_post %>% tweet_political_count() %>% tweet_emotion_count
+
+```
+
+exporting final dataframes
+```{r}
+
+write.csv(charleston_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/charleston_control_final.csv")
+
+write.csv(christchurch_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/christchurch_control_final.csv")
+
+write.csv(pittsburgh_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/pittsburgh_control_final.csv")
+
+write.csv(laguna_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/laguna_control_final.csv")
+
+write.csv(sandy_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/sandy_control_final.csv")
+
+write.csv(santafe_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/santafe_control_final.csv")
+
+write.csv(trayvon_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/trayvon_control_final.csv")
+
+write.csv(uvalde_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/uvalde_control_final.csv")
+
+write.csv(school_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/school_control_final.csv")
+
+write.csv(religious_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/religious_control_final.csv")
+
+write.csv(racial_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/racial_control_final.csv")
+
+write.csv(brown_control_final, "/Users/garyschmidt/Desktop/Econ151PrelimData/Final Dataframes/brown_control_final.csv")
+
+
+```
+
+Compressing dataframes:
+```{r}
+
+charleston_control_words = remove_bad_data(charleston_control_final)
+christchurch_control_words = remove_bad_data(christchurch_control_final)
+brown_control_words = remove_bad_data(brown_control_final)
+pittsburgh_control_words = remove_bad_data(pittsburgh_control_final)
+laguna_control_words = remove_bad_data(laguna_control_final)
+sandy_control_words = remove_bad_data(sandy_control_final)
+santafe_control_words = remove_bad_data(santafe_control_final)
+trayvon_control_words = remove_bad_data(trayvon_control_final)
+uvalde_control_words = remove_bad_data(uvalde_control_final)
+school_control_words = remove_bad_data(school_control_final)
+religious_control_words = remove_bad_data(religious_control_final)
+racial_control_words = remove_bad_data(racial_control_final)
+
+```
+
+exporting compressed dataframes: 
+```{r}
+write.csv(charleston_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/charleston_control_compressed.csv")
+
+write.csv(christchurch_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/christchurch_control_compressed.csv")
+
+write.csv(sandy_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/sandy_control_compressed.csv")
+
+write.csv(pittsburgh_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/pittsburgh_control_compressed.csv")
+
+write.csv(brown_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/brown_control_compressed.csv")
+
+write.csv(laguna_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/laguna_control_compressed.csv")
+
+write.csv(santafe_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/santafe_control_compressed.csv")
+
+write.csv(trayvon_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/trayvon_control_compressed.csv")
+
+write.csv(uvalde_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/uvalde_control_compressed.csv")
+
+write.csv(religious_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/religious_control_compressed.csv")
+
+write.csv(racial_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/racial_control_compressed.csv")
+write.csv(school_control_words, "/Users/garyschmidt/Desktop/Econ151PrelimData/Compressed Final Dataframes/school_control_compressed.csv")
+
+
+```
+
